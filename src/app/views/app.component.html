@@ -1,0 +1,31 @@
+<div class="row" style="min-height:75px;"></div>
+<div class="row">
+    <div class="col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3" >
+        <div class="panel panel-default ">
+            <div class="panel-body" style="height:200px; margin:40px; position: inherit;">
+                <div [@fadeOut]="clicked" class="row" >
+                    <div class="col-sm-1">
+                        <!--<span id="quotation" >"</span>-->
+                    </div>
+                    <div class="col-sm-10">
+                        <div [style.font-size]="fontSize + 'px'"><span [innerHTML]='quoteReceived[0].content'> </span></div>
+                        <h4 style="margin-top: 5%;" class="pull-right"> {{quoteReceived[0].title}}</h4>
+                    </div>
+                </div>
+            </div>  
+            <div class="panel-footer">
+                <!-- https://dev.twitter.com/web/tweet-button -->
+                <span class="pull-right">
+                    <button class="btn btn-success btn-md" [disabled]="clicked == 'out' " (click)="toggleClicked()">Be Inspired</button>
+                    <a href="https://twitter.com/share" 
+                            class="btn btn-primary btn-md twitter-share-button fa fa-twitter fa-2x" 
+                            data-show-count="false"
+                            style="padding:5.5px 15px;" ></a>
+                        <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+                    
+                </span>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
