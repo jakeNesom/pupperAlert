@@ -1,7 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
-import { QuoteService } from './services/quote.service';
+import { PupperData } from './services/pupper-data.service';
+import { AddressManip } from './services/address-manip.service';
+
+import { GoogleMapsAPIWrapper } from 'angular2-google-maps/core';
+
+// https://stackoverflow.com/questions/37326572/how-can-i-integrate-google-maps-apis-inside-an-angular-2-component
+declare var google: any;
+interface Window {
+  initMap():void;
+}
 
 @Component({
   selector: 'app-root',
@@ -33,140 +42,357 @@ import { QuoteService } from './services/quote.service';
   ]
 })
 export class AppComponent  { 
+  public loc: string = 'Sacramento';
+  public title: string = 'pupper-alert' + ' ' + this.loc;
+  public lat: number = 38.5764870;
+  public lng: number = -121.4929151;
   
-  constructor(public quoteService: QuoteService ) {}
-  public clicked: "out" | "set" | "in" | "rest" = "rest";
-  public quoteReceived: Object;
-  public newQuote: Object;
-  public fontSize:number = 30;
-  public tqCounter = 0;
-  public testQuote: any = [ 
-    { 
-      "ID": 2130, 
-      "title": "Tom Bissel", 
-      "content": "<p>To create anything&#8211;whether a short story or a magazine profile or a film or a sitcom&#8211;is to believe, if only momentarily, you are capable of magic.</p>\n", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },
-    { 
-      "ID": 1234, 
-      "title": "Bill Gates", 
-      "content": "<p>If you can't make it good, at least make it look good.</p>", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },
-    { 
-      "ID": 1234, 
-      "title": "Thomas Hardy", 
-      "content": "<p>Fear is the mother of foresight</p>", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },
-    { 
-      "ID": 1234, 
-      "title": "Barack Obama", 
-      "content": "<p>If you're walking down the right path and you're willing to keep walking, eventually you'll make progress.</p>", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },
-    { 
-      "ID": 1234, 
-      "title": "Malcolm X", 
-      "content": "<p>I'm for truth, no matter who tells it.  I'm for justice, no matter who it's for or against.</p>", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },
-    { 
-      "ID": 1234, 
-      "title": "Plato", 
-      "content": "<p>If a man neglects education, he walks lame to the end of his life.</p>", 
-      "link": "https://quotesondesign.com/tom-bissel/", 
-      "custom_meta": { 
-        "Source": "<a href=\"http://www.brainpickings.org/index.php/2012/04/13/magic-hours-tom-bissell/\">article</a>" 
-      }
-    },   
-  ];
-  ngOnInit() { 
-    //this.getQuote()
+  options:any;
+  styles:any;
+  
+  public animalData:any;
 
-    // For testing:
-    this.setQuote(this.testQuote);
-  }
+  public addressGeos = [];
+  constructor( gmw:GoogleMapsAPIWrapper, public pupperData:PupperData,
+    public addressManip:AddressManip ) {
+    
 
-  getQuote (changeState?:"set") { 
-
-    var quote;
-    if( this.tqCounter < this.testQuote.length - 1 && changeState == "set")
-    { 
-      this.tqCounter ++;
-      quote = this.testQuote[this.tqCounter];
-      let quoteArr = [quote];
-      this.setQuote(quoteArr, changeState);
-      
-    }
-    else if (changeState == "set")
-    {
-      this.quoteService.getQuote()
-      .then(
-        quote => this.setQuote(quote, changeState),
-        error => console.log(error)
-      );
-    } else {
-      this.quoteService.getQuote()
-        .then(
-          quote => this.setQuote(quote),
-          error => console.log(error)
-        );
-    }
-  }
-
-  getNewQuote() {
-    if(this.quoteReceived && this.newQuote)
-    {
-      if(this.quoteReceived[0].title !== this.newQuote[0].title )
+    
+      this.styles = [
       {
-        this.setQuote(this.newQuote);
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#ebe3cd"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#523735"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#f5f1e6"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#c9b2a6"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#dcd2be"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#ae9e90"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.neighborhood",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "landscape.natural",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#93817c"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.business",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#a5b076"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#447530"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#f5f1e6"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.icon",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#fdfcf8"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "labels",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#f8c967"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#e9bc62"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#e98d58"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#db8555"
+          }
+        ]
+      },
+      {
+        "featureType": "road.local",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#806b63"
+          }
+        ]
+      },
+      {
+        "featureType": "transit",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#8f7d77"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#ebe3cd"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#b9d3c2"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#92998d"
+          }
+        ]
       }
-      this.getQuote();
-    }
+    ];
     
+}
+  
+  
+  ngOnInit() { 
+   
+  //   var mapProp = {
+  //           center: new google.maps.LatLng(51.508742, -0.120850),
+  //           zoom: 5,
+  //           mapTypeId: google.maps.MapTypeId.ROADMAP
+  //       };
+  //     var map = new google.maps.Map(document.getElementById("gmap"), mapProp);
+      this.getPupperData();
+        
   }
 
-
-  setQuote (quote:any, changeState?:"set") {
-    
-    let length = quote[0].content.length;
-    if(length > 250 ) { this.getQuote();}
-    else {
-      if(length > 200) { this.fontSize = 18; }
-      else if(length > 150) { this.fontSize = 20;}
-      else if(length > 100)  { this.fontSize = 25; }
-      else  { this.fontSize = 30; }
-
-      this.quoteReceived = quote;
-      if(changeState == "set") { this.clicked = "set";}
-    }
+  getPupperData () {
+    this.pupperData.getAllPupperData()
+      .then(data => this.processData(data) );
   }
 
-  toggleClicked() {
-    
-    if(this.clicked == "rest" || this.clicked == "set") { 
-      let _this = this;
-      this.clicked = "out";
-      setTimeout(function(){
-        _this.getQuote("set");
-      }, 2500)
-      
-    }
+  processData(data:any) {
+    console.dir(data); 
+    this.animalData = data.features;
+    this.animalData = this.animalData.splice(-50);
+    console.dir(this.animalData);
+    this.testGeoLocation(this.animalData);
   }
+
+  testGeoLocation (data) {
+    console.log(data[0].properties.Picked_up_Location);
+    let loc = this.addressManip.convertAddressToSearchString(data[0].properties.Picked_up_Location);
+
+    console.log(this.addressManip.getAddressAsGeoCode(loc));
+  }
+  
 }

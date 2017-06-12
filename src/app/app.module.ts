@@ -4,17 +4,28 @@ import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 
+// angular google maps wrappers
+import { AgmCoreModule } from 'angular2-google-maps/core';
+import { GoogleMapsAPIWrapper } from 'angular2-google-maps/core';
+
 //Services
-import { QuoteService } from './services/quote.service';
+import { PupperData } from './services/pupper-data.service';
+import { AddressManip } from './services/address-manip.service';
 
 //Components
 import { AppComponent }  from './app.component';
 
 @NgModule({
-  imports:      [ BrowserModule, HttpModule, 
-                  BrowserAnimationsModule ],
+  imports:      [ 
+    BrowserModule, 
+    HttpModule, 
+    BrowserAnimationsModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyBBFBXvWY8TRmYoJHs1kk0b_2yKFJtJI9Y'
+    })
+                   ],
   declarations: [ AppComponent ],
   bootstrap:    [ AppComponent ],
-  providers: [ QuoteService ]
+  providers: [ GoogleMapsAPIWrapper, PupperData, AddressManip ]
 })
 export class AppModule { }
